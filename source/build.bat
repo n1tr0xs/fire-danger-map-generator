@@ -1,2 +1,2 @@
 @echo off
-pyinstaller --clean --onedir --noconsole --noconfirm --name "fire danger map generator" --icon "icon.png" --add-data "blank.png";"." --add-data "icon.png";"." "main.py"
+pyinstaller --noconfirm --clean --log-level FATAL --onedir --name %name% --contents-directory "." --noconsole --icon "icon.ico" --add-data "icon.ico";"." --add-data "region_coords.txt";"." --add-data "station_regions.txt";"." --add-data "times.ttf";"." "main.py"

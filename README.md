@@ -7,8 +7,8 @@
 2. [icon.ico](icon.ico), [icon.png](icon.png) - иконки приложения.
 3. [region_coords.txt](region_coords.txt) - координаты размещаемых меток и точек покраски областей.
 4. [station_regions.txt](station_regions.txt) - словарь станция-регионы.
----
-Сборка исходного когда (необходимы `Python >=3.11`, `pyinstaller`):
+
+## Сборка исходного когда (необходимы `Python >=3.11`, `pyinstaller`):
 ```Batchfile
 python -m pip install --upgrade pip
 pip install -r requirements.txt pyinstaller

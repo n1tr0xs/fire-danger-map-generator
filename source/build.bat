@@ -1,2 +1,0 @@
-@echo off
-pyinstaller --noconfirm --clean --log-level FATAL --onedir --name %name% --contents-directory "." --noconsole --icon "icon.ico" --add-data "icon.ico";"." --add-data "region_coords.txt";"." --add-data "station_regions.txt";"." --add-data "times.ttf";"." --add-data "blank.png";"." "main.py"

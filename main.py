@@ -4,18 +4,23 @@ import datetime
 import traceback
 import json
 
-from PyQt6 import QtCore, QtGui, QtWidgets
+from PyQt6 import QtCore, QtGui
 from PyQt6.QtCore import Qt, pyqtSlot, QThreadPool, QObject, QRunnable, pyqtSignal
 from PyQt6.QtWidgets import *
 
 from PIL import Image, ImageDraw, ImageFont
 from PIL.ImageQt import ImageQt
 
+ICON_PATH = 'icon.ico'
+BLANK_PATH = 'blank.png'
+FONT_PATH = 'times.ttf'
+IMAGE_NAME_TEMPLATE = "Карта пожарной опасности {day:02}.{month:02}.{year:04}.png"
+
 try:
-    open('blank.png')
+    open(BLANK_PATH)
 except FileNotFoundError:
     with open('log.txt', 'a') as log:
-        log.write('blank.png not found')
+        log.write(f'{BLANK_PATH} not found')
     exit(1)
 
 try:
@@ -28,6 +33,7 @@ try:
         region_coords = json.loads(fin.read())
 except FileNotFoundError:
     print('station_regions.txt not found')
+
 
 def value_to_color(value):
     '''
@@ -43,6 +49,7 @@ def value_to_color(value):
         return (0, 112, 192)
     return (146, 208, 80)
 
+
 def value_to_class(value):
     '''
     Converts fire danger value to fire danger class.
@@ -56,6 +63,7 @@ def value_to_class(value):
     if value > 300:
         return 'II'
     return 'I'
+
 
 class WorkerSignals(QObject):
     '''
@@ -89,6 +97,7 @@ class Worker(QRunnable):
     :param args: Arguments to pass to the callback function
     :param kwargs: Keywords to pass to the callback function
     '''
+
     def __init__(self, fn, *args, **kwargs):
         super(Worker, self).__init__()
         # Store constructor arguments (re-used for processing)
@@ -96,7 +105,7 @@ class Worker(QRunnable):
         self.args = args
         self.kwargs = kwargs
         self.signals = WorkerSignals()
-        
+
         # Add the callback to our kwargs
         self.kwargs['progress_callback'] = self.signals.progress
 
@@ -107,7 +116,7 @@ class Worker(QRunnable):
         '''
         # Retrieve args/kwargs here; and fire processing using them
         try:
-            result = self.fn(*self.args, **self.kwargs)
+            self.fn(*self.args, **self.kwargs)
         except:
             traceback.print_exc()
             exctype, value = sys.exc_info()[:2]
@@ -129,7 +138,7 @@ class HLine(QFrame):
 
 class IntLineEdit(QLineEdit):
     validator = QtGui.QIntValidator()
-    
+
     def __init__(self):
         '''
         Creates QLineEdit with QIntValidator.
@@ -137,7 +146,7 @@ class IntLineEdit(QLineEdit):
         super().__init__()
         self.setValidator(self.validator)
 
-    def getInt(self, default:int=0):
+    def getInt(self, default: int = 0):
         '''
         Returns integer value of input text or `default` value if it's can't be converted.
         '''
@@ -153,12 +162,11 @@ class MainWindow(QMainWindow):
         Creates main window.
         '''
         super().__init__()
-        
+
         self.settings = QtCore.QSettings('n1tr0xs', 'fire danger map generator')
         self.threadpool = QThreadPool.globalInstance()
-        t = datetime.date.today()
-        self.image_name = f"Карта пожарной опасности {t.day:02}.{t.month:02}.{t.year:04}.png"
-                
+        self.image_name = ''
+
         self.layout = QGridLayout()
         self.layout.setHorizontalSpacing(20)
 
@@ -169,7 +177,7 @@ class MainWindow(QMainWindow):
         self.setFont(QtGui.QFont('Times New Roman', 16))
 
         self.setWindowTitle('Генератор карты пожароопасности')
-        self.setWindowIcon(QtGui.QIcon('icon.png'))
+        self.setWindowIcon(QtGui.QIcon(ICON_PATH))
 
         label = QLabel('Станция')
         self.layout.addWidget(label, 0, 0)
@@ -187,7 +195,7 @@ class MainWindow(QMainWindow):
 
         line = HLine()
         self.layout.addWidget(line, 1, 0, 1, 5)
-        
+
         self.station_edit = {}
         i = 0
         for station in station_regions:
@@ -198,34 +206,34 @@ class MainWindow(QMainWindow):
 
             label = QLabel('\n'.join(region for region in station_regions[station]))
             self.layout.addWidget(label, i, 1)
-            
+
             edit = IntLineEdit()
             self.station_edit[station] = edit
             self.layout.addWidget(edit, i, 2)
 
             line = HLine()
-            self.layout.addWidget(line, i+1, 0, 1, 3)
-     
+            self.layout.addWidget(line, i + 1, 0, 1, 3)
+
         self.buttonSubmit = QPushButton('Сгенерировать картинку')
         self.buttonSubmit.clicked.connect(self.start_draw)
-        self.layout.addWidget(self.buttonSubmit, i+2, 0, 1, 3)
+        self.layout.addWidget(self.buttonSubmit, i + 2, 0, 1, 3)
 
         self.buttonShowImage = QPushButton('Перейти к картинке')
         self.buttonShowImage.setEnabled(False)
         self.buttonShowImage.clicked.connect(
             lambda x: subprocess.Popen(fr'explorer /select,"{self.image_name}"')
         )
-        self.layout.addWidget(self.buttonShowImage, i+3, 0, 1, 3)
-        
+        self.layout.addWidget(self.buttonShowImage, i + 3, 0, 1, 3)
+
         self.restore_settings()
         self.show()
 
         self.preview_image_height = self.sizeHint().height()
         self.imageLabel = QLabel()
-        self.redraw_preview(ImageQt(Image.open("blank.png")))
-        self.layout.addWidget(self.imageLabel, 2, 3, len(station_regions.keys())*2+2, 2)
+        self.redraw_preview(ImageQt(Image.open(BLANK_PATH)))
+        self.layout.addWidget(self.imageLabel, 2, 3, len(station_regions.keys()) * 2 + 2, 2)
         self.setFixedSize(self.sizeHint())
-        
+
     def start_draw(self):
         '''
         Starts the draw function worker in another Thread.
@@ -241,11 +249,11 @@ class MainWindow(QMainWindow):
         '''
         Draws the image.
         '''
-        self.image = Image.open('blank.png')
+        self.image = Image.open(BLANK_PATH)
         draw = ImageDraw.Draw(self.image)
-        draw.font = ImageFont.truetype('times.ttf', 42)
+        draw.font = ImageFont.truetype(FONT_PATH, 42)
         text_color = (0, 0, 0)
-        
+
         for station, edit in self.station_edit.items():
             value = edit.getInt()
             for region in station_regions[station]:
@@ -259,13 +267,13 @@ class MainWindow(QMainWindow):
                 draw.multiline_text((x, y), text=text, fill=text_color, anchor='mm', align='center')
                 # callback to redraw preview
                 progress_callback.emit(ImageQt(self.image))
-        
-    def redraw_preview(self, image:ImageQt):
+
+    def redraw_preview(self, image: ImageQt):
         '''
         Redraws preview from given image.
         '''
         self.imageLabel.setPixmap(QtGui.QPixmap.fromImage(image.scaledToHeight(self.preview_image_height)))
-        
+
     def drawing_complete(self):
         '''
         Handling end of drawing process; after it do the follows:
@@ -274,15 +282,17 @@ class MainWindow(QMainWindow):
         3) Enabling buttonShowImage.
         4) Enabling buttonSubmit.
         '''
-        self.image.save(self.image_name, 'PNG') # 1
-        self.image.close() # 2
-        self.buttonShowImage.setEnabled(True) # 3
-        self.buttonSubmit.setEnabled(True) # 4
+        today = datetime.date.today()
+        self.image_name = IMAGE_NAME_TEMPLATE.format(day=today.day, month=today.month, year=today.year)
+        self.image.save(self.image_name, 'PNG')  # 1
+        self.image.close()  # 2
+        self.buttonShowImage.setEnabled(True)  # 3
+        self.buttonSubmit.setEnabled(True)  # 4
 
-    def closeEvent(self, event:QtGui.QCloseEvent):
+    def closeEvent(self, event: QtGui.QCloseEvent):
         self.save_settings()
         super().closeEvent(event)
-        
+
     def save_settings(self):
         '''
         Saves current window geometry.
@@ -294,7 +304,8 @@ class MainWindow(QMainWindow):
         Restores last window geometry.
         '''
         self.restoreGeometry(self.settings.value("geometry", type=QtCore.QByteArray))
-        
+
+
 if __name__ == "__main__":
     app = QApplication(sys.argv)
     w = MainWindow()

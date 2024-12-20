@@ -3,7 +3,7 @@
 Программа была разработана в рамках автоматизации процессов УГМС по ЛНР.  
 Скриншот:
 
-![image](![image](https://github.com/user-attachments/assets/742de31e-8cf5-4caf-b9ad-769c4e2a0f90))
+![image](https://github.com/user-attachments/assets/d083f66a-101f-466f-895d-292ff048285b)
 
 
 # Для разработчиков:

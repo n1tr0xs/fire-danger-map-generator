@@ -240,12 +240,12 @@ class MainWindow(QMainWindow):
         Binds signals of worker.
         '''
         self.buttonSubmit.setEnabled(False)
-        worker = Worker(self.draw)
+        worker = Worker(self.draw_map)
         worker.signals.progress.connect(self.redraw_preview)
         worker.signals.finished.connect(self.drawing_complete)
         self.threadpool.start(worker)
 
-    def draw(self, progress_callback):
+    def draw_map(self, progress_callback):
         '''
         Draws the image.
         '''

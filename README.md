@@ -3,7 +3,7 @@
 Программа была разработана в рамках автоматизации процессов УГМС по ЛНР.  
 Скриншот:
 
-![image](https://github.com/n1tr0xs/fire-danger-map-generator/assets/36129181/76c3308e-0ee9-42c5-9ea9-4d54477e74f8)
+![image](![image](https://github.com/user-attachments/assets/742de31e-8cf5-4caf-b9ad-769c4e2a0f90))
 
 
 # Для разработчиков:
